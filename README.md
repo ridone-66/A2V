@@ -64,7 +64,7 @@ Ces comptes et annonces sont fictifs. Ne réutilisez jamais ces mots de passe ho
 
 1. Importer le dépôt dans Vercel (Root Directory `a2v` si nécessaire).
 2. Créer un PostgreSQL via le Marketplace Vercel, puis définir `DATABASE_URL` (URL poolée) et `DIRECT_URL` (URL directe pour les migrations).
-3. Créer un store **Vercel Blob**, définir `STORAGE_DRIVER=vercel-blob` et vérifier `BLOB_READ_WRITE_TOKEN`.
+3. Créer un store **Vercel Blob**, définir `STORAGE_DRIVER=vercel-blob` et vérifier `BLOB_STORE_ID` (OIDC) ou `BLOB_READ_WRITE_TOKEN`.
 4. Renseigner `APP_URL`, `SESSION_SECRET`, `CRON_SECRET`, `IP_HASH_SALT`, `PAYMENTS_SIMULATION`, `SHIPPING_MODE`.
 5. Déployer : `npm run vercel-build` applique la migration initiale puis construit Next.js.
 6. Optionnel : seeder la base de démonstration depuis votre machine, avec `NODE_ENV=development` et la `DATABASE_URL` hébergée.
@@ -106,7 +106,7 @@ Le contrat complet est dans [`.env.example`](.env.example). Points essentiels :
 - `SHIPPING_MODE=simulation` — étiquettes et suivis fictifs clairement marqués. `live` exige les identifiants transporteur.
 - `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` — active le checkout réel et le webhook signé.
 - `SMTP_*` — sans configuration, les e-mails partent en mode console (journalisés, jamais envoyés).
-- `STORAGE_DRIVER=local` — stockage disque en développement. Sur Vercel, utilisez `STORAGE_DRIVER=vercel-blob` avec `BLOB_READ_WRITE_TOKEN` (store Vercel Blob).
+- `STORAGE_DRIVER=local` — stockage disque en développement. Sur Vercel, utilisez `STORAGE_DRIVER=vercel-blob` avec un store Blob connecté (`BLOB_STORE_ID` + OIDC) ou `BLOB_READ_WRITE_TOKEN`.
 
 Aucun secret n'est exposé au navigateur : les modules sensibles sont serveur uniquement (`server-only`).
 

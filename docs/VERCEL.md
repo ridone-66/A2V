@@ -11,7 +11,7 @@ A2V est une application **Next.js 15 (App Router)** avec **PostgreSQL + Prisma**
 | Base de données | PostgreSQL local sur le port 5433 | `DATABASE_URL` hébergée (Vercel Postgres / Neon / Supabase) ; `DIRECT_URL` pour les migrations |
 | Schéma | `prisma db push`, aucune migration | Migration initiale versionnée `prisma/migrations/20261028130000_init` |
 | Build | `prisma generate && next build` | `vercel-build` : `prisma generate` → `prisma migrate deploy` → `next build` |
-| Téléversements | Disque local `var/uploads` | `STORAGE_DRIVER=vercel-blob` + `BLOB_READ_WRITE_TOKEN` (le mode local reste disponible en développement) |
+| Téléversements | Disque local `var/uploads` | `STORAGE_DRIVER=vercel-blob` + store Blob connecté en OIDC (`BLOB_STORE_ID`) ou `BLOB_READ_WRITE_TOKEN` |
 | Taille des images | 5 Mo | 4 Mo, pour rester sous la limite de 4,5 Mo des fonctions Vercel |
 | Tâches planifiées | Serveur/cron externe | Vercel Cron appelle `/api/cron/tick` (protégé par `CRON_SECRET`) |
 | URL publique | `http://localhost:3000` | `APP_URL`, avec repli automatique sur `VERCEL_URL` |
@@ -52,7 +52,7 @@ A2V est une application **Next.js 15 (App Router)** avec **PostgreSQL + Prisma**
 ### 3.3 Créer le stockage Vercel Blob
 
 1. Vercel → **Storage** → **Blob** → créer un store et le relier au projet.
-2. Vercel ajoute automatiquement `BLOB_READ_WRITE_TOKEN`.
+2. Lorsque le store est connecté au projet, Vercel ajoute `BLOB_STORE_ID` et utilise `VERCEL_OIDC_TOKEN` automatiquement. Un `BLOB_READ_WRITE_TOKEN` statique reste possible mais n'est pas nécessaire.
 3. Définir `STORAGE_DRIVER=vercel-blob`.
 
 ### 3.4 Renseigner les variables
@@ -127,7 +127,7 @@ Sinon, utilisez un scheduler externe (GitHub Actions, cron) qui appelle la même
 | `IP_HASH_SALT` | Sel de hachage des adresses IP (sécurité, limitation de débit). |
 | `APP_URL` | URL publique HTTPS du site (ex. `https://a2v.vercel.app`). |
 | `STORAGE_DRIVER` | `vercel-blob` en production. |
-| `BLOB_READ_WRITE_TOKEN` | Jeton du store Vercel Blob pour les téléversements. |
+| `BLOB_READ_WRITE_TOKEN` | Jeton statique optionnel du store Vercel Blob ; avec un store connecté en OIDC, `BLOB_STORE_ID` + `VERCEL_OIDC_TOKEN` suffisent. |
 | `PAYMENTS_SIMULATION` | `true` pour la démonstration ; `false` uniquement avec Stripe configuré. |
 | `SHIPPING_MODE` | `simulation` pour la démonstration ; `live` avec La Poste configurée. |
 

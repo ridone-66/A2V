@@ -55,17 +55,20 @@ export async function saveImage(file: File): Promise<StoredImage> {
   const name = `${Date.now().toString(36)}-${randomBytes(12).toString("hex")}.${type.ext}`;
 
   if (env.STORAGE_DRIVER === "vercel-blob") {
-    if (!env.BLOB_READ_WRITE_TOKEN) {
+    const hasOidc = Boolean(process.env.BLOB_STORE_ID);
+    if (!env.BLOB_READ_WRITE_TOKEN && !hasOidc) {
       throw new AppError(
         "NOT_CONFIGURED",
-        "BLOB_READ_WRITE_TOKEN est manquant. Ajoutez un store Vercel Blob et exposez son jeton.",
+        "Aucun identifiant Vercel Blob : connectez un store Blob au projet (BLOB_STORE_ID) ou définissez BLOB_READ_WRITE_TOKEN.",
       );
     }
     const blob = await put(`listings/${name}`, buffer, {
       access: "public",
       contentType: type.mime,
-      token: env.BLOB_READ_WRITE_TOKEN,
       addRandomSuffix: true,
+      // Avec un store connecté en OIDC, @vercel/blob utilise BLOB_STORE_ID et
+      // VERCEL_OIDC_TOKEN automatiquement. Le token statique reste optionnel.
+      ...(env.BLOB_READ_WRITE_TOKEN ? { token: env.BLOB_READ_WRITE_TOKEN } : {}),
     });
     return { url: blob.url, mime: type.mime, size: buffer.length, storedName: blob.pathname };
   }
@@ -99,5 +102,5 @@ export const storageStatus =
   env.STORAGE_DRIVER === "local"
     ? { driver: "local", persistent: false, note: "Développement uniquement — utiliser vercel-blob en production." }
     : env.STORAGE_DRIVER === "vercel-blob"
-      ? { driver: "vercel-blob", persistent: true, note: "Vercel Blob (obligatoire en production serverless)." }
+      ? { driver: "vercel-blob", persistent: true, note: "Vercel Blob (OIDC via BLOB_STORE_ID ou BLOB_READ_WRITE_TOKEN)." }
       : { driver: "s3", persistent: false, note: "Adaptateur S3 non implémenté." };
