@@ -4,7 +4,7 @@
   "private": true,
   "description": "A2V — marketplace communautaire d'achat, de revente et d'enchères en ligne",
   "engines": {
-    "node": ">=22.0.0"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "next dev",
