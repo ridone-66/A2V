@@ -78,9 +78,11 @@ Si le build affiche **« Aucune base PostgreSQL n'est configurée »**, cela sig
 3. Vérifier que `DATABASE_URL` et `DIRECT_URL` existent dans **Settings → Environment Variables** (Production et Preview).
 4. Cliquer sur **Redeploy** : un simple redéploiement sans nouvelle variable réutilise l'ancienne configuration.
 
-### 3.6 Seed de démonstration (optionnel)
+### 3.6 Seed de démonstration
 
-Le seed est bloqué en production. Pour une démonstration, exécutez-le **depuis votre machine**, avec la base hébergée et `NODE_ENV=development` :
+Le build Vercel exécute `scripts/seed-if-empty.mjs` après les migrations. Si `SEED_DEMO_DATA=true` et que la base ne contient aucun utilisateur, le seed de démonstration est lancé automatiquement. Sur les déploiements suivants, il détecte les données existantes et ne fait rien.
+
+Pour le lancer manuellement (ou sur une base locale), depuis votre machine avec la base hébergée et `NODE_ENV=development` :
 
 ```powershell
 $env:NODE_ENV="development"
@@ -88,7 +90,7 @@ $env:DATABASE_URL="postgresql://…/a2v?sslmode=require"
 npm run db:seed
 ```
 
-> `db:seed` **efface** les données existantes. Ne l'utilisez pas sur une base de production réelle.
+> `db:seed` **efface** les données existantes. Ne l'utilisez pas sur une base de production réelle. Le seed automatique est lui aussi réservé à la démonstration.
 
 ### 3.7 Vérifier
 
@@ -130,6 +132,7 @@ Sinon, utilisez un scheduler externe (GitHub Actions, cron) qui appelle la même
 | `BLOB_READ_WRITE_TOKEN` | Jeton statique optionnel du store Vercel Blob ; avec un store connecté en OIDC, `BLOB_STORE_ID` + `VERCEL_OIDC_TOKEN` suffisent. |
 | `PAYMENTS_SIMULATION` | `true` pour la démonstration ; `false` uniquement avec Stripe configuré. |
 | `SHIPPING_MODE` | `simulation` pour la démonstration ; `live` avec La Poste configurée. |
+| `SEED_DEMO_DATA` | `true` pour peupler automatiquement la base vide avec les données de démonstration au premier build. |
 
 ### Recommandées / fonctionnelles
 

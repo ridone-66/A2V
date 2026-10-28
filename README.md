@@ -67,7 +67,7 @@ Ces comptes et annonces sont fictifs. Ne réutilisez jamais ces mots de passe ho
 3. Créer un store **Vercel Blob**, définir `STORAGE_DRIVER=vercel-blob` et vérifier `BLOB_STORE_ID` (OIDC) ou `BLOB_READ_WRITE_TOKEN`.
 4. Renseigner `APP_URL`, `SESSION_SECRET`, `CRON_SECRET`, `IP_HASH_SALT`, `PAYMENTS_SIMULATION`, `SHIPPING_MODE`.
 5. Déployer : `npm run vercel-build` applique la migration initiale puis construit Next.js.
-6. Optionnel : seeder la base de démonstration depuis votre machine, avec `NODE_ENV=development` et la `DATABASE_URL` hébergée.
+6. Le premier build Vercel peut seeder automatiquement la base si `SEED_DEMO_DATA=true` et que la base est vide. Sinon, lancez le seed manuellement avec `NODE_ENV=development` et la `DATABASE_URL` hébergée.
 
 Le guide complet, la liste des variables et les limites (cron, rate limiting, stockage) sont dans [docs/VERCEL.md](docs/VERCEL.md).
 
