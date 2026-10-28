@@ -55,11 +55,11 @@ export async function saveImage(file: File): Promise<StoredImage> {
   const name = `${Date.now().toString(36)}-${randomBytes(12).toString("hex")}.${type.ext}`;
 
   if (env.STORAGE_DRIVER === "vercel-blob") {
-    const hasOidc = Boolean(process.env.BLOB_STORE_ID);
+    const hasOidc = Boolean(process.env.BLOB_STORE_ID && process.env.VERCEL_OIDC_TOKEN);
     if (!env.BLOB_READ_WRITE_TOKEN && !hasOidc) {
       throw new AppError(
         "NOT_CONFIGURED",
-        "Aucun identifiant Vercel Blob : connectez un store Blob au projet (BLOB_STORE_ID) ou définissez BLOB_READ_WRITE_TOKEN.",
+        "Aucun identifiant Vercel Blob : connectez un store Blob au projet (BLOB_STORE_ID + OIDC) ou définissez BLOB_READ_WRITE_TOKEN.",
       );
     }
     const blob = await put(`listings/${name}`, buffer, {

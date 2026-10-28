@@ -50,6 +50,7 @@ const envSchema = z.object({
   SHIPPING_MODE: z.enum(["simulation", "live"]).default("simulation"),
   STORAGE_DRIVER: z.enum(["local", "s3", "vercel-blob"]).default("local"),
   BLOB_READ_WRITE_TOKEN: z.string().optional(),
+  BLOB_STORE_ID: z.string().optional(),
   S3_ENDPOINT: z.string().optional(),
   S3_REGION: z.string().optional(),
   S3_BUCKET: z.string().optional(),

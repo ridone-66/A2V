@@ -55,3 +55,8 @@ next-env.d.ts
 
 # journaux
 *.log
+
+# ajoutés par Vercel CLI
+.vercel
+.env*
+!.env.example
