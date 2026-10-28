@@ -1,0 +1,178 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #211a2c;
+}
+
+* {
+  border-color: theme("colors.brand.100");
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #ddd6fe;
+  color: #3b0f73;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-semibold tracking-tight text-ink;
+  }
+
+  a {
+    @apply transition-colors;
+  }
+
+  :focus-visible {
+    outline: 2px solid #6d28d9;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .card {
+    @apply rounded-2xl border border-brand-100 bg-white shadow-card;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-brand-200 bg-white px-3.5 py-2.5 text-[15px] text-ink shadow-sm outline-none transition placeholder:text-muted/70 focus:border-brand-500 focus:ring-4 focus:ring-brand-100;
+  }
+
+  .prose-a2v {
+    @apply space-y-4 text-[15px] leading-7 text-muted;
+  }
+
+  .prose-a2v h2 {
+    @apply mt-8 text-xl text-ink;
+  }
+
+  .prose-a2v h3 {
+    @apply mt-6 text-lg text-ink;
+  }
+
+  .prose-a2v ul {
+    @apply list-disc space-y-2 pl-5;
+  }
+
+  .prose-a2v strong {
+    @apply text-ink;
+  }
+
+  .link {
+    @apply text-brand-600 underline-offset-4 hover:underline;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Décor animé de la page Trophées (voir components/trophies/trophy-decoration.tsx). */
+@keyframes trophy-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.5deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(1.5deg);
+  }
+}
+
+@keyframes trophy-glow {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes trophy-sparkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.6) rotate(45deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+}
+
+.trophy-float {
+  animation: trophy-float 7s ease-in-out infinite;
+  transform-origin: 50% 85%;
+}
+
+.trophy-float-alt {
+  animation: trophy-float 8.5s ease-in-out infinite;
+  animation-delay: -3.4s;
+  transform-origin: 50% 85%;
+}
+
+.trophy-glow {
+  animation: trophy-glow 6.5s ease-in-out infinite;
+}
+
+.trophy-sparkle {
+  animation: trophy-sparkle 3.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trophy-float,
+  .trophy-float-alt,
+  .trophy-glow,
+  .trophy-sparkle {
+    animation: none !important;
+  }
+}
+
+@media print {
+  header,
+  footer,
+  nav {
+    display: none !important;
+  }
+}
