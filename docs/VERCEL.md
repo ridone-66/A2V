@@ -69,7 +69,14 @@ prisma migrate deploy   (avec DIRECT_URL)
 next build
 ```
 
-La migration initiale crée les 53 tables et tous les enums. Si le build échoue sur `prisma migrate deploy`, vérifiez `DIRECT_URL` (la migration ne doit pas passer par un pooler en mode transaction).
+La migration initiale crée les 53 tables et tous les enums. Le script accepte aussi les noms fournis par Vercel Postgres / Neon : `POSTGRES_URL_NON_POOLING`, `DATABASE_URL_UNPOOLED`, `POSTGRES_PRISMA_URL` et `POSTGRES_URL`. Si ces variables existent mais que `DATABASE_URL`/`DIRECT_URL` manquent, ajoutez tout de même les deux alias explicites pour l'exécution et les migrations.
+
+Si le build affiche **« Aucune base PostgreSQL n'est configurée »**, cela signifie qu'aucun store Postgres n'est relié au projet ou que les variables ne sont pas encore disponibles pour ce déploiement :
+
+1. Vercel → **Storage** → **Create Database** → **Postgres**.
+2. Connecter la base au projet.
+3. Vérifier que `DATABASE_URL` et `DIRECT_URL` existent dans **Settings → Environment Variables** (Production et Preview).
+4. Cliquer sur **Redeploy** : un simple redéploiement sans nouvelle variable réutilise l'ancienne configuration.
 
 ### 3.6 Seed de démonstration (optionnel)
 

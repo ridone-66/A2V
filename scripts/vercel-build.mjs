@@ -2,22 +2,45 @@
  * Build de production pour Vercel.
  *
  * 1. génère le client Prisma ;
- * 2. applique les migrations sur la base hébergée (DIRECT_URL si fournie,
- *    sinon DATABASE_URL) ;
+ * 2. applique les migrations sur la base hébergée ;
  * 3. lance le build Next.js.
  *
  * Vercel exécute automatiquement `vercel-build` lorsqu'il existe.
+ *
+ * Noms d'URL acceptés (intégrations Vercel Postgres / Neon) :
+ * - migration : DIRECT_URL, POSTGRES_URL_NON_POOLING, DATABASE_URL_UNPOOLED,
+ *   puis DATABASE_URL ;
+ * - exécution : DATABASE_URL, POSTGRES_PRISMA_URL, POSTGRES_URL.
  */
 import { spawnSync } from "node:child_process";
 
-const databaseUrl =
+const directUrl =
   process.env.DIRECT_URL ||
   process.env.POSTGRES_URL_NON_POOLING ||
+  process.env.DATABASE_URL_UNPOOLED ||
   process.env.DATABASE_URL;
 
-if (!databaseUrl) {
+const runtimeUrl =
+  process.env.DATABASE_URL ||
+  process.env.POSTGRES_PRISMA_URL ||
+  process.env.POSTGRES_URL ||
+  directUrl;
+
+if (!directUrl || !runtimeUrl) {
   console.error(
-    "[A2V][vercel] DATABASE_URL (ou DIRECT_URL / POSTGRES_URL_NON_POOLING) est requis pour appliquer les migrations.",
+    [
+      "",
+      "[A2V][vercel] Aucune base PostgreSQL n'est configurée pour ce build.",
+      "",
+      "Ajoutez un store Postgres dans Vercel : Storage → Create Database → Postgres,",
+      "puis connectez-le au projet. Vercel expose alors POSTGRES_URL_NON_POOLING",
+      "et POSTGRES_PRISMA_URL. Vous pouvez aussi définir explicitement :",
+      "  DATABASE_URL = URL poolée",
+      "  DIRECT_URL   = URL directe (migrations)",
+      "",
+      "Après avoir ajouté les variables, relancez le déploiement (Redeploy).",
+      "",
+    ].join("\n"),
   );
   process.exit(1);
 }
@@ -37,5 +60,5 @@ function run(label, args, extraEnv = {}) {
 }
 
 run("prisma generate", ["prisma", "generate"]);
-run("prisma migrate deploy", ["prisma", "migrate", "deploy"], { DATABASE_URL: databaseUrl });
-run("next build", ["next", "build"]);
+run("prisma migrate deploy", ["prisma", "migrate", "deploy"], { DATABASE_URL: directUrl });
+run("next build", ["next", "build"], { DATABASE_URL: runtimeUrl });

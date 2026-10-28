@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { resolveDatabaseUrl } from "@/lib/database-url";
+
+resolveDatabaseUrl();
 
 /**
  * Validation centralisée des variables d'environnement.
