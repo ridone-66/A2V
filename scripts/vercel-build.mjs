@@ -59,6 +59,23 @@ function run(label, args, extraEnv = {}) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
+function runNode(label, script, extraEnv = {}) {
+  console.log(`\n[A2V][vercel] ${label}`);
+  const result = spawnSync(process.execPath, [script], {
+    stdio: "inherit",
+    env: { ...process.env, ...extraEnv },
+  });
+  if (result.error) {
+    console.error(`[A2V][vercel] ${label} : ${result.error.message}`);
+    process.exit(1);
+  }
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
 run("prisma generate", ["prisma", "generate"]);
 run("prisma migrate deploy", ["prisma", "migrate", "deploy"], { DATABASE_URL: directUrl });
+runNode("seed de démonstration (si base vide)", "scripts/seed-if-empty.mjs", {
+  DATABASE_URL: directUrl,
+  SEED_DATABASE_URL: directUrl,
+});
 run("next build", ["next", "build"], { DATABASE_URL: runtimeUrl });
