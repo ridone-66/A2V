@@ -21,7 +21,7 @@ export function AuthShell({
         <div className="relative">
           <Link href="/" className="text-3xl font-extrabold tracking-tight">A2V</Link>
           <p className="mt-2 text-xs uppercase tracking-[0.2em] text-brand-200">Marketplace française</p>
-          <h2 className="mt-10 max-w-md text-balance text-3xl font-bold leading-tight">
+          <h2 className="mt-10 max-w-md text-balance text-3xl font-bold leading-tight text-orange-400">
             Achetez, vendez et enchérissez en toute clarté.
           </h2>
           <p className="mt-3 max-w-md text-sm leading-6 text-brand-100">
