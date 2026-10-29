@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, LegalSection } from "@/components/layout/legal-page";
-import { AUCTION_PAYMENT_DEADLINE_HOURS, FINALIZATION_DELAY_DAYS, PREMIUM } from "@/lib/config";
+import { AUCTION_PAYMENT_DEADLINE_HOURS, FINALIZATION_DELAY_DAYS, PREMIUM, trialOfferLabel } from "@/lib/config";
 import { formatMoney } from "@/lib/money";
 
 export const metadata: Metadata = {
@@ -98,13 +98,16 @@ export default function TermsPage() {
       <LegalSection title="6. A2V Prestige">
         <p>
           A2V Prestige est un abonnement facultatif de {formatMoney(PREMIUM.priceCents)} par mois, précédé de{" "}
-          {PREMIUM.trialMonths} mois offerts. Aucun engagement de durée. La résiliation peut être demandée à tout moment et
-          gratuitement en ligne depuis <Link href="/compte/abonnement" className="link">la gestion de l&apos;abonnement</Link>{" "}
-          (article L215-1-1 du code de la consommation) ; elle prend effet à la fin de la période en cours. L&apos;abonnement ne
-          réduit pas la commission et n&apos;est jamais obligatoire pour acheter ou vendre.
+          {trialOfferLabel(PREMIUM.trialDays)}. À l&apos;issue de cette période offerte, l&apos;abonnement est conclu pour un
+          engagement de {PREMIUM.commitmentMonths} mois. Aucune résiliation n&apos;est possible pendant la période offerte ni
+          pendant l&apos;engagement : elle peut être demandée à partir de la date de fin d&apos;engagement, gratuitement en ligne
+          depuis <Link href="/compte/abonnement" className="link">la gestion de l&apos;abonnement</Link>, et prend effet à la fin
+          de la période en cours. À défaut de résiliation, l&apos;abonnement se poursuit ensuite mois par mois. Le droit de
+          rétractation légal de 14 jours prévu à l&apos;article L221-18 du code de la consommation reste applicable à la
+          souscription. L&apos;abonnement ne réduit pas la commission et n&apos;est jamais obligatoire pour acheter ou vendre.
         </p>
         <p>
-          Les membres Prestige bénéficient d&apos;une réduction automatique de <strong>15 %</strong> sur les articles dont le
+          Les membres Prestige bénéficient d&apos;une réduction automatique de <strong>10 %</strong> sur les articles dont le
           prix final dépasse 10 000 €, hors frais de livraison. Elle s&apos;applique aux achats à prix fixe comme aux enchères
           remportées, est calculée côté serveur et n&apos;est pas cumulable avec une autre réduction : la plus avantageuse est
           retenue. Les annonces dont le prix affiché, ou le prix de départ d&apos;une enchère, dépasse 10 000 € sont réservées aux
@@ -117,8 +120,8 @@ export default function TermsPage() {
           est automatique et contrôlée côté serveur.
         </p>
         <p>
-          Dans cette démonstration, l&apos;essai expire sans prélèvement et l&apos;activation payante est simulée. Aucune
-          reconduction silencieuse n&apos;est mise en œuvre.
+          Dans cette démonstration, la période offerte et l&apos;engagement sont affichés, mais les prélèvements restent simulés.
+          Aucun paiement réel n&apos;est effectué sans Stripe Billing configuré et confirmé par un webhook signé.
         </p>
       </LegalSection>
 

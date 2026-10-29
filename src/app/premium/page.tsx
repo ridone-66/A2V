@@ -7,6 +7,7 @@ import { getSetting } from "@/lib/services/settings";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/utils";
 import { paymentsSimulationEnabled } from "@/lib/env";
+import { PREMIUM, trialDurationLabel, trialOfferLabel } from "@/lib/config";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,9 +22,9 @@ import {
 } from "@/app/actions/premium";
 
 export const metadata: Metadata = {
-  title: "A2V Prestige — 3 mois offerts",
+  title: `A2V Prestige — ${trialOfferLabel(PREMIUM.trialDays)}`,
   description:
-    "A2V Prestige : offres exclusives et réductions supplémentaires. 3 mois offerts, puis 6 € par mois, sans engagement. Vendre reste gratuit et sans abonnement.",
+    `A2V Prestige : offres exclusives et réductions supplémentaires. ${trialOfferLabel(PREMIUM.trialDays)}, puis ${formatMoney(PREMIUM.priceCents)} par mois pendant ${PREMIUM.commitmentMonths} mois. Vendre reste gratuit et sans abonnement.`,
 };
 
 const BENEFITS = [
@@ -32,12 +33,15 @@ const BENEFITS = [
     text: "Accédez aux annonces que les vendeurs choisissent de réserver aux membres Prestige.",
   },
   {
-    title: "15 % sur les articles à plus de 10 000 €",
+    title: "10 % sur les articles à plus de 10 000 €",
     text: "Réduction automatique sur le prix de l'article dès que le prix final dépasse 10 000 €. Au-delà de ce seuil, l'annonce est réservée aux membres Prestige ; en dessous, tout le monde peut acheter au prix affiché.",
   },
   { title: "Réductions supplémentaires", text: "Un avantage automatique sur vos achats, dans la limite des plafonds affichés." },
   { title: "Découverte avancée", text: "Des sélections et un accès anticipé aux ventes (selon les fonctionnalités activées)." },
-  { title: "Sans engagement", text: "Résiliez à tout moment. L'abonnement s'arrête à la fin de la période payée." },
+  {
+    title: `Engagement de ${PREMIUM.commitmentMonths} mois`,
+    text: `${trialOfferLabel(PREMIUM.trialDays)}, puis ${formatMoney(PREMIUM.priceCents)} par mois. La résiliation n'est possible qu'à la fin de l'engagement.`,
+  },
 ];
 
 export default async function PremiumPage() {
@@ -47,7 +51,7 @@ export default async function PremiumPage() {
     getSetting("premium.priceCents"),
   ]);
   const priceCents = state?.priceCents ?? offer;
-  const trialMonths = state?.trialMonths ?? 3;
+  const trialDays = state?.trialDays ?? PREMIUM.trialDays;
 
   return (
     <div>
@@ -59,11 +63,12 @@ export default async function PremiumPage() {
               <Sparkles className="h-3.5 w-3.5" /> A2V Prestige Club
             </Badge>
             <h1 className="mt-4 text-balance text-4xl font-extrabold leading-tight sm:text-5xl">
-              {trialMonths} mois offerts, puis {formatMoney(priceCents)} / mois.
+              {trialOfferLabel(trialDays)}, puis {formatMoney(priceCents)} / mois.
             </h1>
             <p className="mt-4 max-w-xl text-brand-100">
-              Un accès aux offres réservées et des réductions supplémentaires. Sans engagement, sans obligation de vendre et sans
-              frais cachés. La commission de 0,5 % sur les ventes reste identique pour tous.
+              Un accès aux offres réservées et des réductions supplémentaires. {trialOfferLabel(PREMIUM.trialDays)}, puis{" "}
+              {formatMoney(priceCents)} par mois pendant {PREMIUM.commitmentMonths} mois. La commission de 0,5 % sur les ventes
+              reste identique pour tous.
             </p>
             <ul className="mt-6 grid gap-2 sm:grid-cols-2">
               {BENEFITS.map((benefit) => (
@@ -114,11 +119,11 @@ export default async function PremiumPage() {
               {formatMoney(priceCents)}
               <span className="text-base font-medium text-brand-200"> / mois</span>
             </p>
-            <p className="mt-1 text-sm text-brand-200">Après {trialMonths} mois d&apos;essai gratuit. Aucun prélèvement pendant l&apos;essai.</p>
+            <p className="mt-1 text-sm text-brand-200">Après {trialDurationLabel(trialDays)} offerts. Le premier mois est ensuite facturé automatiquement, sans résiliation possible avant la fin de l&apos;engagement.</p>
             <div className="mt-5 space-y-2 border-t border-white/15 pt-4 text-sm">
               <p className="flex items-center justify-between gap-3"><span className="text-brand-200">Commission de vente</span><span>0,5 % (inchangée)</span></p>
-              <p className="flex items-center justify-between gap-3"><span className="text-brand-200">Engagement</span><span>Aucun</span></p>
-              <p className="flex items-center justify-between gap-3"><span className="text-brand-200">Résiliation</span><span>À tout moment</span></p>
+              <p className="flex items-center justify-between gap-3"><span className="text-brand-200">Engagement</span><span>{PREMIUM.commitmentMonths} mois</span></p>
+              <p className="flex items-center justify-between gap-3"><span className="text-brand-200">Résiliation</span><span>À la fin de l&apos;engagement</span></p>
               <p className="flex items-center justify-between gap-3"><span className="text-brand-200">Publication d&apos;annonces</span><span>Gratuite</span></p>
             </div>
             <p className="mt-4 text-xs leading-5 text-brand-200">
@@ -136,14 +141,14 @@ export default async function PremiumPage() {
             <PageHeader
               eyebrow="Votre situation"
               title={state?.isPremium ? "Votre abonnement Prestige" : "Démarrer avec Prestige"}
-              description="Les états sont calculés côté serveur. Aucune reconduction silencieuse : vous voyez toujours la date et le montant."
+              description="Les états sont calculés côté serveur. L'engagement, l'échéance et le montant sont affichés en toute transparence."
             />
 
             {!user ? (
               <Card className="p-6">
                 <p className="text-sm leading-6 text-muted">
-                  Connectez-vous pour démarrer l&apos;essai. Vous pourrez résilier depuis votre compte à tout moment. Aucun
-                  abonnement n&apos;est requis pour acheter ou vendre sur A2V.
+                  Connectez-vous pour démarrer la période offerte. Elle dure {trialDurationLabel(PREMIUM.trialDays)} et est suivie
+                  d&apos;un engagement de {PREMIUM.commitmentMonths} mois. Aucun abonnement n&apos;est requis pour acheter ou vendre sur A2V.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <ButtonLink href="/inscription">Créer un compte</ButtonLink>
@@ -158,15 +163,21 @@ export default async function PremiumPage() {
                     <dd className="font-semibold">
                       {state?.isPremium
                         ? state.status === "TRIALING"
-                          ? "Essai gratuit en cours"
+                          ? "Période offerte en cours"
                           : state.status === "CANCEL_AT_PERIOD_END"
                             ? "Résiliation programmée"
                             : "Actif"
                         : state?.hasUsedTrial
-                          ? "Essai déjà utilisé"
+                          ? "Période offerte déjà utilisée"
                           : "Aucun abonnement"}
                     </dd>
                   </div>
+                  {state?.commitmentEndsAt ? (
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-muted">Fin d&apos;engagement</dt>
+                      <dd className="font-medium">{formatDate(state.commitmentEndsAt)}</dd>
+                    </div>
+                  ) : null}
                   {state?.nextBillingAt ? (
                     <div className="flex justify-between gap-3">
                       <dt className="text-muted">Prochaine échéance</dt>
@@ -192,7 +203,7 @@ export default async function PremiumPage() {
                         <ActionForm action={resumeSubscriptionAction} submitLabel="Reprendre l'abonnement" pendingLabel="Reprise…">
                           <p className="text-xs text-muted">Votre abonnement reste actif jusqu&apos;à la fin de la période payée.</p>
                         </ActionForm>
-                      ) : (
+                      ) : state.canCancel ? (
                         <ActionForm action={cancelSubscriptionAction} submitLabel="Résilier à la fin de la période" pendingLabel="Résiliation…" footer={
                           <p className="text-xs text-muted">Aucun frais de résiliation. Les avantages restent actifs jusqu&apos;à l&apos;échéance.</p>
                         }>
@@ -200,14 +211,21 @@ export default async function PremiumPage() {
                             La résiliation prend effet à la fin de la période en cours. Aucun nouveau prélèvement ne sera effectué.
                           </p>
                         </ActionForm>
+                      ) : (
+                        <p className="text-xs leading-5 text-muted">
+                          Votre engagement de {PREMIUM.commitmentMonths} mois court jusqu&apos;au{" "}
+                          {state.commitmentEndsAt ? formatDate(state.commitmentEndsAt) : "—"}. La résiliation sera possible à cette
+                          date ; elle n&apos;est pas possible pendant la période offerte ni pendant l&apos;engagement.
+                        </p>
                       )}
                       <ButtonLink href="/compte/abonnement" variant="outline" size="sm">Voir mon abonnement</ButtonLink>
                     </>
                   ) : state?.canStartTrial ? (
-                    <ActionForm action={startTrialAction} submitLabel={`Démarrer ${trialMonths} mois offerts`} pendingLabel="Activation…">
+                    <ActionForm action={startTrialAction} submitLabel={`Démarrer les ${trialDurationLabel(trialDays)} offerts`} pendingLabel="Activation…">
                       <p className="text-xs leading-5 text-muted">
-                        Aucun paiement pendant l&apos;essai. À la fin de l&apos;essai, l&apos;abonnement ne se renouvelle pas
-                        automatiquement dans cette démonstration : vous devrez confirmer l&apos;activation payante.
+                        Aucun paiement pendant la période offerte. Elle est suivie d&apos;un engagement de{" "}
+                        {PREMIUM.commitmentMonths} mois à {formatMoney(priceCents)} par mois. La résiliation n&apos;est possible
+                        qu&apos;à la fin de l&apos;engagement.
                       </p>
                     </ActionForm>
                   ) : (
@@ -245,7 +263,7 @@ export default async function PremiumPage() {
               </ul>
               <p className="mt-4 text-xs leading-5 text-muted">
                 Les réductions Prestige sont appliquées côté serveur lors de la commande, dans les plafonds définis. Elles ne sont
-                jamais versées en espèces. La réduction de 15 % s&apos;applique aux articles dont le prix final dépasse 10 000 € ;
+                jamais versées en espèces. La réduction de 10 % s&apos;applique aux articles dont le prix final dépasse 10 000 € ;
                 ces articles étant réservés aux membres au-delà du seuil, elle bénéficie aux abonnés actifs. Elle n&apos;est pas
                 cumulable avec une autre réduction (la plus avantageuse est retenue).
               </p>
@@ -254,15 +272,15 @@ export default async function PremiumPage() {
             <Card className="p-6 text-sm text-muted">
               <h2 className="text-base font-semibold text-ink">Questions fréquentes</h2>
               <details className="mt-3 border-b border-brand-100 pb-3">
-                <summary className="cursor-pointer font-medium text-ink">Que se passe-t-il après l&apos;essai ?</summary>
-                <p className="mt-2">Dans cette version de démonstration, l&apos;essai expire sans prélèvement et sans reconduction silencieuse. En production, Stripe Billing prévient avant l&apos;échéance et le webhook confirme le paiement.</p>
+                <summary className="cursor-pointer font-medium text-ink">Que se passe-t-il après la période offerte ?</summary>
+                <p className="mt-2">L&apos;abonnement se poursuit à {formatMoney(PREMIUM.priceCents)} par mois pour un engagement de {PREMIUM.commitmentMonths} mois. La résiliation n&apos;est possible qu&apos;à la fin de cet engagement. Dans cette démonstration, les prélèvements restent simulés.</p>
               </details>
               <details className="mt-3 border-b border-brand-100 pb-3">
-                <summary className="cursor-pointer font-medium text-ink">Puis-je résilier immédiatement ?</summary>
-                <p className="mt-2">La résiliation programme la fin à l&apos;échéance. Une résiliation immédiate reste possible depuis la gestion de l&apos;abonnement, avec perte des avantages.</p>
+                <summary className="cursor-pointer font-medium text-ink">Puis-je résilier pendant la période offerte ?</summary>
+                <p className="mt-2">Non. La résiliation est bloquée pendant les {trialDurationLabel(PREMIUM.trialDays)} offerts et pendant l&apos;engagement de {PREMIUM.commitmentMonths} mois. Elle redevient possible à la date de fin d&apos;engagement.</p>
               </details>
               <details className="mt-3 border-b border-brand-100 pb-3">
-                <summary className="cursor-pointer font-medium text-ink">Comment fonctionne la réduction de 15 % ?</summary>
+                <summary className="cursor-pointer font-medium text-ink">Comment fonctionne la réduction de 10 % ?</summary>
                 <p className="mt-2">
                   Elle s&apos;applique automatiquement aux membres Prestige lorsque le prix final de l&apos;article dépasse
                   10 000 € (hors livraison), sur les achats à prix fixe comme sur les enchères remportées. Les annonces

@@ -142,7 +142,7 @@ export function CheckoutForm({
           </div>
           {premiumDiscountCents > 0 ? (
             <div className="flex justify-between gap-4 text-brand-700">
-              <dt>Avantage Prestige (−15 %)</dt>
+              <dt>Avantage Prestige (−10 %)</dt>
               <dd className="font-medium">− {formatMoney(premiumDiscountCents)}</dd>
             </div>
           ) : null}

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { addMonths } from "date-fns";
+import { addDays, addMonths } from "date-fns";
 import type { Subscription } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { AppError } from "@/lib/errors";
@@ -9,21 +9,34 @@ import { getSetting } from "@/lib/services/settings";
 import { notify } from "@/lib/services/notifications";
 import { audit } from "@/lib/services/audit";
 import { logger } from "@/lib/logger";
-import { PREMIUM } from "@/lib/config";
+import { PREMIUM, commitmentEndsAt, trialOfferLabel } from "@/lib/config";
 
 export type PremiumState = {
   isPremium: boolean;
   hasUsedTrial: boolean;
   canStartTrial: boolean;
   status: "NONE" | "TRIALING" | "ACTIVE" | "CANCEL_AT_PERIOD_END" | "EXPIRED" | "PAYMENT_FAILED";
-  subscription: (Subscription & { offer: { name: string; priceCents: number; trialMonths: number } }) | null;
+  subscription: (Subscription & { offer: { name: string; priceCents: number; trialDays: number } }) | null;
   trialEndsAt: Date | null;
+  commitmentEndsAt: Date | null;
+  canCancel: boolean;
   currentPeriodEnd: Date | null;
   nextBillingAt: Date | null;
   priceCents: number;
-  trialMonths: number;
+  trialDays: number;
   daysRemaining: number | null;
 };
+
+/**
+ * Fin d'engagement d'un abonnement. Les abonnements créés avant l'ajout de la
+ * colonne sont recalculés depuis la fin de l'essai (ou la création).
+ */
+export function resolveCommitmentEndsAt(subscription: Subscription | null): Date | null {
+  if (!subscription) return null;
+  if (subscription.commitmentEndsAt) return subscription.commitmentEndsAt;
+  const anchor = subscription.trialEndsAt ?? subscription.createdAt;
+  return commitmentEndsAt(anchor);
+}
 
 export function isSubscriptionActive(subscription: Subscription | null, now = new Date()): boolean {
   if (!subscription) return false;
@@ -35,15 +48,15 @@ export function isSubscriptionActive(subscription: Subscription | null, now = ne
 }
 
 export async function getPremiumState(userId: string): Promise<PremiumState> {
-  const [subscription, trialCount, priceCents, trialMonths] = await Promise.all([
+  const [subscription, trialCount, priceCents, trialDays] = await Promise.all([
     prisma.subscription.findFirst({
       where: { userId },
       orderBy: { createdAt: "desc" },
-      include: { offer: { select: { name: true, priceCents: true, trialMonths: true } } },
+      include: { offer: { select: { name: true, priceCents: true, trialDays: true } } },
     }),
     prisma.subscription.count({ where: { userId, trialStartedAt: { not: null } } }),
     getSetting("premium.priceCents"),
-    getSetting("premium.trialMonths"),
+    getSetting("premium.trialDays"),
   ]);
 
   const now = new Date();
@@ -52,6 +65,7 @@ export async function getPremiumState(userId: string): Promise<PremiumState> {
   const canStartTrial = !hasUsedTrial && !isPremium;
 
   const trialEndsAt = subscription?.trialEndsAt ?? null;
+  const commitment = resolveCommitmentEndsAt(subscription);
   const currentPeriodEnd = subscription?.currentPeriodEnd ?? null;
   const nextBillingAt =
     subscription && isPremium
@@ -69,10 +83,12 @@ export async function getPremiumState(userId: string): Promise<PremiumState> {
     status: subscription?.status ?? "NONE",
     subscription: subscription ?? null,
     trialEndsAt,
+    commitmentEndsAt: commitment,
+    canCancel: Boolean(commitment && commitment <= now && subscription?.status === "ACTIVE"),
     currentPeriodEnd,
     nextBillingAt,
     priceCents,
-    trialMonths,
+    trialDays,
     daysRemaining,
   };
 }
@@ -98,7 +114,7 @@ export async function startTrial(userId: string) {
   }
   if (state.isPremium) throw new AppError("CONFLICT", "Votre abonnement Prestige est déjà actif.");
 
-  const trialMonths = await getSetting("premium.trialMonths");
+  const trialDays = await getSetting("premium.trialDays");
   let offer = await prisma.premiumOffer.findUnique({ where: { code: "PRESTIGE_MONTHLY" } });
   const priceCents = await getSetting("premium.priceCents");
   if (!offer) {
@@ -107,7 +123,7 @@ export async function startTrial(userId: string) {
         code: "PRESTIGE_MONTHLY",
         name: PREMIUM.label,
         priceCents,
-        trialMonths,
+        trialDays,
         features: [
           "Offres exclusives",
           "Enchères réservées",
@@ -119,7 +135,8 @@ export async function startTrial(userId: string) {
   }
 
   const now = new Date();
-  const trialEndsAt = addMonths(now, trialMonths);
+  const trialEndsAt = addDays(now, trialDays);
+  const engagementEndsAt = commitmentEndsAt(trialEndsAt);
 
   const subscription = await prisma.$transaction(async (tx) => {
     const created = await tx.subscription.create({
@@ -129,13 +146,19 @@ export async function startTrial(userId: string) {
         status: "TRIALING",
         trialStartedAt: now,
         trialEndsAt,
+        commitmentEndsAt: engagementEndsAt,
         currentPeriodStart: now,
         currentPeriodEnd: trialEndsAt,
         provider: paymentsSimulationEnabled ? "SIMULATED" : "STRIPE",
         events: {
           create: {
             type: "TRIAL_STARTED",
-            metadata: { trialMonths, trialEndsAt: trialEndsAt.toISOString() },
+            metadata: {
+              trialDays,
+              trialEndsAt: trialEndsAt.toISOString(),
+              commitmentMonths: PREMIUM.commitmentMonths,
+              commitmentEndsAt: engagementEndsAt.toISOString(),
+            },
           },
         },
       },
@@ -155,7 +178,7 @@ export async function startTrial(userId: string) {
     userId,
     type: "SUBSCRIPTION",
     title: "Votre essai Prestige est activé",
-    body: `Profitez de ${trialMonths} mois offerts. Première facturation le ${trialEndsAt.toLocaleDateString("fr-FR")} (${(priceCents / 100).toFixed(2)} €/mois). Sans engagement.`,
+    body: `Profitez de ${trialOfferLabel(trialDays)}. Première facturation le ${trialEndsAt.toLocaleDateString("fr-FR")} (${(priceCents / 100).toFixed(2)} €/mois), puis engagement de ${PREMIUM.commitmentMonths} mois jusqu'au ${engagementEndsAt.toLocaleDateString("fr-FR")}. Aucune résiliation pendant cette période.`,
     href: "/compte/abonnement",
   });
 
@@ -202,6 +225,7 @@ export async function activateSubscription(userId: string) {
       data: {
         status: "ACTIVE",
         trialEndsAt: now,
+        commitmentEndsAt: state.commitmentEndsAt ?? commitmentEndsAt(now),
         currentPeriodStart: now,
         currentPeriodEnd: periodEnd,
         cancelAtPeriodEnd: false,
@@ -230,7 +254,7 @@ export async function activateSubscription(userId: string) {
     userId,
     type: "SUBSCRIPTION",
     title: "Abonnement Prestige activé",
-    body: `Votre abonnement est actif jusqu'au ${periodEnd.toLocaleDateString("fr-FR")}. Renouvellement mensuel de ${(priceCents / 100).toFixed(2)} €, résiliable à tout moment.`,
+    body: `Votre abonnement est actif jusqu'au ${periodEnd.toLocaleDateString("fr-FR")}. Renouvellement mensuel de ${(priceCents / 100).toFixed(2)} €, engagement de ${PREMIUM.commitmentMonths} mois.`,
     href: "/compte/abonnement",
   });
   await audit(userId, "SUBSCRIPTION_ACTIVATED_SIMULATED", { targetType: "Subscription", targetId: subscription.id });
@@ -247,11 +271,11 @@ export async function activateSubscriptionFromStripe(input: {
   currentPeriodEnd: Date;
 }) {
   const priceCents = await getSetting("premium.priceCents");
-  const trialMonths = await getSetting("premium.trialMonths");
+  const trialDays = await getSetting("premium.trialDays");
   const offer =
     (await prisma.premiumOffer.findUnique({ where: { code: "PRESTIGE_MONTHLY" } })) ??
     (await prisma.premiumOffer.create({
-      data: { code: "PRESTIGE_MONTHLY", name: PREMIUM.label, priceCents, trialMonths },
+      data: { code: "PRESTIGE_MONTHLY", name: PREMIUM.label, priceCents, trialDays },
     }));
   const now = new Date();
   const existing = await prisma.subscription.findFirst({
@@ -267,6 +291,7 @@ export async function activateSubscriptionFromStripe(input: {
             status: "ACTIVE",
             provider: "STRIPE",
             providerRef: input.providerRef,
+            commitmentEndsAt: existing.commitmentEndsAt ?? commitmentEndsAt(now),
             currentPeriodStart: now,
             currentPeriodEnd: input.currentPeriodEnd,
             cancelAtPeriodEnd: false,
@@ -281,6 +306,7 @@ export async function activateSubscriptionFromStripe(input: {
             status: "ACTIVE",
             provider: "STRIPE",
             providerRef: input.providerRef,
+            commitmentEndsAt: commitmentEndsAt(now),
             currentPeriodStart: now,
             currentPeriodEnd: input.currentPeriodEnd,
             events: { create: { type: "STRIPE_SUBSCRIPTION_CREATED", metadata: { providerRef: input.providerRef } } },
@@ -335,6 +361,14 @@ export async function cancelSubscription(userId: string, immediate = false) {
   if (!subscription) throw new AppError("NOT_FOUND", "Aucun abonnement actif à résilier.");
 
   const now = new Date();
+  const engagementEndsAt = resolveCommitmentEndsAt(subscription);
+  if (engagementEndsAt && engagementEndsAt > now) {
+    throw new AppError(
+      "CONFLICT",
+      `Résiliation impossible avant le ${engagementEndsAt.toLocaleDateString("fr-FR")} : l'engagement Prestige de ${PREMIUM.commitmentMonths} mois est en cours.`,
+    );
+  }
+
   const expiresAt = subscription.status === "TRIALING" ? subscription.trialEndsAt : subscription.currentPeriodEnd;
   const updated = await prisma.$transaction(async (tx) => {
     const result =
@@ -412,36 +446,121 @@ export async function processSubscriptionLifecycle(now = new Date()) {
   });
 
   let expired = 0;
+  let converted = 0;
+
   for (const subscription of candidates) {
-    await prisma.$transaction(async (tx) => {
-      const updated = await tx.subscription.update({
-        where: { id: subscription.id },
-        data: {
-          status: "EXPIRED",
-          events: {
-            create: {
-              type: subscription.status === "TRIALING" ? "TRIAL_EXPIRED" : "SUBSCRIPTION_EXPIRED",
-              metadata: { processedAt: now.toISOString() },
+    // Fin de la période offerte : l'engagement démarre automatiquement par un
+    // premier mois payant (simulation). En production, Stripe Billing doit
+    // confirmer le paiement par webhook ; sans Stripe, l'essai expire.
+    if (subscription.status === "TRIALING") {
+      if (!paymentsSimulationEnabled) {
+        await expireSubscription(subscription, now);
+        expired += 1;
+        continue;
+      }
+
+      const priceCents = await getSetting("premium.priceCents");
+      const periodStart = subscription.trialEndsAt ?? now;
+      const periodEnd = addMonths(periodStart, 1);
+
+      await prisma.$transaction(async (tx) => {
+        const payment = await tx.payment.create({
+          data: {
+            userId: subscription.userId,
+            subscriptionId: subscription.id,
+            provider: "SIMULATED",
+            providerRef: `sim_sub_trial_${subscription.id}_${periodStart.toISOString().slice(0, 10)}`,
+            idempotencyKey: `trial_convert_${subscription.id}_${periodStart.toISOString().slice(0, 10)}`,
+            type: "SUBSCRIPTION",
+            amountCents: priceCents,
+            status: "SUCCEEDED",
+            metadata: {
+              simulated: true,
+              automatic: true,
+              note: "Premier mois après la période offerte — simulation",
             },
           },
-        },
+        });
+        await tx.subscription.update({
+          where: { id: subscription.id },
+          data: {
+            status: "ACTIVE",
+            currentPeriodStart: periodStart,
+            currentPeriodEnd: periodEnd,
+            commitmentEndsAt: subscription.commitmentEndsAt ?? commitmentEndsAt(periodStart),
+            cancelAtPeriodEnd: false,
+            canceledAt: null,
+            events: {
+              create: {
+                type: "SUBSCRIPTION_ACTIVATED",
+                metadata: { paymentId: payment.id, priceCents, automatic: true },
+              },
+            },
+          },
+        });
+        await tx.entitlement.updateMany({
+          where: { userId: subscription.userId, key: "PREMIUM" },
+          data: { expiresAt: periodEnd, revokedAt: null, source: `subscription:${subscription.id}` },
+        });
+        await tx.transactionEvent.create({
+          data: {
+            actorId: subscription.userId,
+            paymentId: payment.id,
+            type: "SUBSCRIPTION_STARTED",
+            amountCents: priceCents,
+            metadata: { simulated: true, automatic: true },
+          },
+        });
+        await tx.notification.create({
+          data: {
+            userId: subscription.userId,
+            type: "SUBSCRIPTION",
+            title: "Votre abonnement Prestige démarre",
+            body: `La période offerte est terminée. Votre engagement de ${PREMIUM.commitmentMonths} mois commence ; premier mois de ${(priceCents / 100).toFixed(2)} € enregistré en simulation.`,
+            href: "/compte/abonnement",
+          },
+        });
       });
-      await tx.entitlement.updateMany({
-        where: { userId: subscription.userId, key: "PREMIUM" },
-        data: { expiresAt: now, revokedAt: now },
-      });
-      await tx.notification.create({
-        data: {
-          userId: subscription.userId,
-          type: "SUBSCRIPTION",
-          title: subscription.status === "TRIALING" ? "Votre essai Prestige est terminé" : "Votre abonnement Prestige a expiré",
-          body: "Les avantages Premium sont désactivés. Vous pouvez réactiver votre abonnement à tout moment.",
-          href: "/compte/abonnement",
-        },
-      });
-      logger.info("Abonnement expiré", { subscriptionId: updated.id, userId: subscription.userId });
-    });
+
+      logger.info("Essai converti en abonnement", { subscriptionId: subscription.id, userId: subscription.userId });
+      converted += 1;
+      continue;
+    }
+
+    await expireSubscription(subscription, now);
     expired += 1;
   }
-  return { expired, processed: candidates.length };
+
+  return { expired, converted, processed: candidates.length };
+}
+
+async function expireSubscription(subscription: Subscription, now: Date) {
+  await prisma.$transaction(async (tx) => {
+    const updated = await tx.subscription.update({
+      where: { id: subscription.id },
+      data: {
+        status: "EXPIRED",
+        events: {
+          create: {
+            type: subscription.status === "TRIALING" ? "TRIAL_EXPIRED" : "SUBSCRIPTION_EXPIRED",
+            metadata: { processedAt: now.toISOString() },
+          },
+        },
+      },
+    });
+    await tx.entitlement.updateMany({
+      where: { userId: subscription.userId, key: "PREMIUM" },
+      data: { expiresAt: now, revokedAt: now },
+    });
+    await tx.notification.create({
+      data: {
+        userId: subscription.userId,
+        type: "SUBSCRIPTION",
+        title: subscription.status === "TRIALING" ? "Votre essai Prestige est terminé" : "Votre abonnement Prestige a expiré",
+        body: "Les avantages Premium sont désactivés. Vous pouvez réactiver votre abonnement à tout moment.",
+        href: "/compte/abonnement",
+      },
+    });
+    logger.info("Abonnement expiré", { subscriptionId: updated.id, userId: subscription.userId });
+  });
 }

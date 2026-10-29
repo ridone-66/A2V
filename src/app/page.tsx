@@ -23,6 +23,7 @@ import { getCharityStats } from "@/lib/services/donations";
 import { getTrophyProgress } from "@/lib/services/trophies";
 import { formatMoney } from "@/lib/money";
 import { formatMoneyShort } from "@/lib/money";
+import { PREMIUM, trialOfferLabel } from "@/lib/config";
 import { ListingCard } from "@/components/listings/listing-card";
 import { AuctionCard } from "@/components/listings/auction-card";
 import { Badge } from "@/components/ui/badge";
@@ -335,13 +336,13 @@ export default async function HomePage() {
                 <Badge tone="brand">
                   <Sparkles className="h-3 w-3" /> A2V Prestige
                 </Badge>
-                <h2 className="mt-3 text-2xl font-bold text-ink">3 mois offerts, puis 6 €/mois.</h2>
+                <h2 className="mt-3 text-2xl font-bold text-ink">{trialOfferLabel(PREMIUM.trialDays)}, puis {formatMoney(PREMIUM.priceCents)}/mois.</h2>
                 <p className="mt-2 text-sm leading-6 text-muted">
-                  Accédez aux offres réservées, à des réductions supplémentaires et à une découverte avancée. Sans
-                  engagement : vous pouvez arrêter à tout moment.
+                  Accédez aux offres réservées, à des réductions supplémentaires et à une découverte avancée. Engagement de{" "}
+                  {PREMIUM.commitmentMonths} mois : la résiliation n&apos;est possible qu&apos;à l&apos;échéance.
                 </p>
                 <ul className="mt-4 space-y-2 text-sm text-ink">
-                  {["Offres et enchères exclusives", "Réductions Prestige cumulables avec vos trophées", "Aucun engagement"].map(
+                  {["Offres et enchères exclusives", "Réductions Prestige cumulables avec vos trophées", `Engagement de ${PREMIUM.commitmentMonths} mois`].map(
                     (feature) => (
                       <li key={feature} className="flex items-start gap-2">
                         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" /> {feature}

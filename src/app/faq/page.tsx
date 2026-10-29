@@ -6,7 +6,7 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { PageHeader } from "@/components/ui/page-header";
 import { ButtonLink } from "@/components/ui/button";
 import { formatMoney } from "@/lib/money";
-import { AUCTION_PAYMENT_DEADLINE_HOURS, FINALIZATION_DELAY_DAYS, PREMIUM } from "@/lib/config";
+import { AUCTION_PAYMENT_DEADLINE_HOURS, FINALIZATION_DELAY_DAYS, PREMIUM, trialOfferLabel } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: "Aide et questions fréquentes",
@@ -65,23 +65,23 @@ const SECTIONS = [
     items: [
       {
         q: "Combien coûte Prestige ?",
-        a: `${PREMIUM.trialMonths} mois offerts, puis ${formatMoney(PREMIUM.priceCents)} par mois, sans engagement. La résiliation peut être programmée à tout moment.`,
+        a: `${trialOfferLabel(PREMIUM.trialDays)}, puis ${formatMoney(PREMIUM.priceCents)} par mois pendant ${PREMIUM.commitmentMonths} mois (engagement). La résiliation n'est possible qu'à la fin de l'engagement.`,
       },
       {
         q: "L'abonnement réduit-il la commission ?",
-        a: "Non. La commission de 0,5 % reste identique pour tous. Prestige donne accès aux annonces réservées (dont celles de plus de 10 000 €), une réduction de 15 % sur ces articles et des réductions plafonnées.",
+        a: "Non. La commission de 0,5 % reste identique pour tous. Prestige donne accès aux annonces réservées (dont celles de plus de 10 000 €), une réduction de 10 % sur ces articles et des réductions plafonnées.",
       },
       {
         q: "Quelles annonces sont réservées aux membres ?",
         a: "Toute annonce à prix fixe, ou enchère dont le prix de départ, dépasse 10 000 € est automatiquement réservée aux membres Prestige : les non-membres ne la voient pas et ne peuvent pas l'acheter. En dessous de 10 000 €, un vendeur peut aussi choisir librement de réserver son annonce.",
       },
       {
-        q: "Comment fonctionne la réduction Prestige de 15 % ?",
+        q: "Comment fonctionne la réduction Prestige de 10 % ?",
         a: "Elle s'applique automatiquement aux membres actifs lorsque le prix final de l'article dépasse 10 000 €, hors livraison, à prix fixe comme sur une enchère remportée. Les annonces au-dessus de 10 000 € sont réservées aux membres ; la réduction est calculée côté serveur et n'est pas cumulable avec une autre réduction (la plus avantageuse est retenue).",
       },
       {
-        q: "Que se passe-t-il à la fin de l'essai ?",
-        a: "Dans cette démonstration, l'essai expire sans prélèvement et sans reconduction silencieuse. En production, Stripe Billing prévient avant l'échéance et le webhook signé confirme le paiement.",
+        q: "Que se passe-t-il à la fin de la période offerte ?",
+        a: `L'abonnement se poursuit automatiquement à ${formatMoney(PREMIUM.priceCents)} par mois pour un engagement de ${PREMIUM.commitmentMonths} mois. Aucune résiliation n'est possible pendant la période offerte ni pendant l'engagement. En démonstration, les prélèvements restent simulés.`,
       },
     ],
   },

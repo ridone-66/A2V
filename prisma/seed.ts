@@ -9,7 +9,7 @@ import { PrismaClient, type ListingCondition } from "@prisma/client";
 import { access, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { hashPassword } from "../src/lib/auth/password";
-import { PREMIUM_ONLY_THRESHOLD_CENTS } from "../src/lib/config";
+import { PREMIUM_ONLY_THRESHOLD_CENTS, commitmentEndsAt } from "../src/lib/config";
 
 const prisma = new PrismaClient();
 
@@ -322,8 +322,8 @@ async function main() {
       { key: "commission.base", value: "ITEM_PRICE_BEFORE_DISCOUNT", description: "Assiette de commission." },
       { key: "donation.minCents", value: 100 },
       { key: "donation.maxCents", value: 100000 },
-      { key: "premium.priceCents", value: 600 },
-      { key: "premium.trialMonths", value: 3 },
+      { key: "premium.priceCents", value: 1500 },
+      { key: "premium.trialDays", value: 90 },
       { key: "charity.platformContributionBps", value: 0, description: "Aucune contribution décidée : paramètre à valider." },
     ],
   });
@@ -1146,13 +1146,13 @@ async function main() {
     data: {
       code: "PRESTIGE_MONTHLY",
       name: "A2V Prestige Club",
-      priceCents: 600,
-      trialMonths: 3,
+      priceCents: 1500,
+      trialDays: 90,
       features: [
         "Offres et enchères exclusives",
         "Réductions supplémentaires",
         "Découverte avancée",
-        "Aucun engagement, résiliable à tout moment",
+        "Engagement de 12 mois, résiliation à l'échéance",
       ],
     },
   });
@@ -1164,6 +1164,7 @@ async function main() {
       status: "ACTIVE",
       trialStartedAt: day(-125),
       trialEndsAt: day(-35),
+      commitmentEndsAt: commitmentEndsAt(day(-35)),
       currentPeriodStart: day(-35),
       currentPeriodEnd: day(25),
       provider: "SIMULATED",
@@ -1172,7 +1173,7 @@ async function main() {
       events: {
         create: [
           { type: "TRIAL_STARTED", createdAt: day(-125) },
-          { type: "SUBSCRIPTION_ACTIVATED", createdAt: day(-35), metadata: { simulated: true, priceCents: 600 } },
+          { type: "SUBSCRIPTION_ACTIVATED", createdAt: day(-35), metadata: { simulated: true, priceCents: 1500 } },
         ],
       },
     },
@@ -1188,7 +1189,7 @@ async function main() {
       providerRef: `sim_sub_payment_clara`,
       idempotencyKey: `sub_clara_${now.toISOString().slice(0, 10)}`,
       type: "SUBSCRIPTION",
-      amountCents: 600,
+      amountCents: 1500,
       status: "SUCCEEDED",
       metadata: { simulated: true },
     },
@@ -1199,18 +1200,19 @@ async function main() {
       userId: thomas.id,
       offerId: offer.id,
       status: "TRIALING",
-      trialStartedAt: day(-10),
-      trialEndsAt: day(80),
-      currentPeriodStart: day(-10),
-      currentPeriodEnd: day(80),
+      trialStartedAt: day(-2),
+      trialEndsAt: day(5),
+      commitmentEndsAt: commitmentEndsAt(day(5)),
+      currentPeriodStart: day(-2),
+      currentPeriodEnd: day(5),
       provider: "SIMULATED",
       providerRef: `sim_sub_thomas_${now.getFullYear()}`,
-      createdAt: day(-10),
-      events: { create: { type: "TRIAL_STARTED", createdAt: day(-10) } },
+      createdAt: day(-2),
+      events: { create: { type: "TRIAL_STARTED", createdAt: day(-2) } },
     },
   });
   await prisma.entitlement.create({
-    data: { userId: thomas.id, key: "PREMIUM", source: `subscription:${thomasSub.id}`, expiresAt: day(80), grantedAt: day(-10) },
+    data: { userId: thomas.id, key: "PREMIUM", source: `subscription:${thomasSub.id}`, expiresAt: day(5), grantedAt: day(-2) },
   });
 
   console.log("Messagerie, favoris, notifications…");

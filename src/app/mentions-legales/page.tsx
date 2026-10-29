@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, LegalSection } from "@/components/layout/legal-page";
+import { PREMIUM, trialOfferLabel } from "@/lib/config";
+import { formatMoney } from "@/lib/money";
 
 export const metadata: Metadata = {
   title: "Mentions légales",
@@ -122,12 +124,12 @@ export default function LegalNoticePage() {
           CGV définitives.
         </p>
         <p>
-          <strong className="text-ink">Résiliation de l&apos;abonnement Prestige.</strong> L&apos;abonnement est facultatif,
-          sans engagement et résiliable gratuitement en ligne depuis{" "}
-          <Link href="/compte/abonnement" className="link">la gestion de l&apos;abonnement</Link>, conformément à la faculté de
-          résiliation par voie électronique prévue à l&apos;article L215-1-1 du code de la consommation. La résiliation prend
-          effet à la fin de la période en cours ; aucun frais ni justificatif n&apos;est exigé. L&apos;essai de trois mois expire
-          sans reconduction automatique dans cette démonstration.
+          <strong className="text-ink">Abonnement Prestige.</strong> L&apos;abonnement est facultatif : {formatMoney(PREMIUM.priceCents)}{" "}
+          par mois, précédé de {trialOfferLabel(PREMIUM.trialDays)}, puis engagement de {PREMIUM.commitmentMonths} mois. Aucune
+          résiliation n&apos;est possible pendant la période offerte ni pendant l&apos;engagement. Elle peut être demandée
+          gratuitement en ligne, à partir de la fin de l&apos;engagement, depuis{" "}
+          <Link href="/compte/abonnement" className="link">la gestion de l&apos;abonnement</Link>, et prend effet à la fin de la
+          période en cours. Le droit de rétractation légal de 14 jours reste applicable à la souscription.
         </p>
       </LegalSection>
 

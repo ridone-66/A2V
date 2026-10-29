@@ -19,7 +19,7 @@ import { getAccountOverview } from "@/lib/services/users";
 import { getPremiumState } from "@/lib/services/premium";
 import { formatMoney } from "@/lib/money";
 import { formatDate, formatDateTime } from "@/lib/utils";
-import { ORDER_STATUS_LABELS } from "@/lib/config";
+import { ORDER_STATUS_LABELS, PREMIUM, trialOfferLabel } from "@/lib/config";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Alert, Card, CardBody, CardHeader, EmptyState, Stat } from "@/components/ui/card";
@@ -169,23 +169,23 @@ export default async function AccountDashboardPage() {
                 <p className="flex items-center gap-2 text-sm font-semibold">
                   <Sparkles className="h-4 w-4" /> A2V Prestige
                 </p>
-                {premium.isPremium ? <Badge className="border-white/20 bg-white/15 text-white">{premium.status === "TRIALING" ? "Essai" : "Actif"}</Badge> : null}
+                {premium.isPremium ? <Badge className="border-white/20 bg-white/15 text-white">{premium.status === "TRIALING" ? "Période offerte" : "Actif"}</Badge> : null}
               </div>
               <p className="mt-2 text-lg font-bold">
                 {premium.isPremium
                   ? premium.status === "TRIALING"
-                    ? "Essai gratuit en cours"
+                    ? "Période offerte en cours"
                     : "Abonnement actif"
                   : premium.hasUsedTrial
-                    ? "Essai déjà utilisé"
-                    : `${premium.trialMonths} mois offerts`}
+                    ? "Période offerte déjà utilisée"
+                    : trialOfferLabel(premium.trialDays)}
               </p>
               <p className="mt-1 text-xs text-brand-100">
                 {premium.isPremium
                   ? premium.nextBillingAt
                     ? `Prochaine échéance : ${formatDate(premium.nextBillingAt)}`
-                    : "Sans engagement, résiliable à tout moment."
-                  : `Puis ${formatMoney(premium.priceCents)} / mois, sans engagement.`}
+                    : `Engagement jusqu'au ${premium.commitmentEndsAt ? formatDate(premium.commitmentEndsAt) : "—"}.`
+                  : `Puis ${formatMoney(premium.priceCents)} / mois pendant ${PREMIUM.commitmentMonths} mois.`}
               </p>
               <ButtonLink href={premium.isPremium ? "/compte/abonnement" : "/premium"} variant="outline" size="sm" className="mt-4 border-white/30 bg-white/10 text-white hover:bg-white/20">
                 {premium.isPremium ? "Gérer mon abonnement" : "Découvrir Prestige"}

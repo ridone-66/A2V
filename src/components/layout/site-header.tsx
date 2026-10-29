@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { logoutAction } from "@/app/actions/auth";
+import { PREMIUM, trialOfferLabel } from "@/lib/config";
 
 async function loadHeaderData() {
   const user = await getCurrentUser();
@@ -207,7 +208,7 @@ export async function SiteHeader() {
             className="flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50"
           >
             <Sparkles className="h-4 w-4" /> Premium
-            <Badge tone="brand" className="ml-0.5">3 mois offerts</Badge>
+            <Badge tone="brand" className="ml-0.5">{trialOfferLabel(PREMIUM.trialDays)}</Badge>
           </Link>
           <Link href="/trophees" className="rounded-full px-3 py-2 text-sm font-medium text-ink hover:bg-brand-50">
             Trophées

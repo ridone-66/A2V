@@ -170,8 +170,8 @@ Règles structurantes :
 
 ### Prestige
 
-- **6 €/mois**, **3 mois offerts**, sans engagement, résiliable en ligne.
-- L'essai **expire** sans reconduction ni prélèvement silencieux : l'utilisateur choisit explicitement de continuer.
+- **15 €/mois**, **3 mois offerts**, puis **engagement de 12 mois**. Aucune résiliation pendant la période offerte ni pendant l'engagement ; elle redevient possible à la date de fin d'engagement.
+- À la fin des 3 mois offerts, l'abonnement se poursuit automatiquement au tarif de 15 €/mois (paiement simulé en démonstration, Stripe Billing en production). Aucune résiliation n'est possible avant la fin de l'engagement.
 - En mode simulation, l'activation crée un paiement fictif marqué comme tel. En production, seule la confirmation Stripe Billing par webhook signé active l'abonnement.
 - Les offres réservées aux membres sont vérifiées côté serveur.
 - Toute annonce affichée à **plus de 10 000 €** (prix fixe ou prix de départ d'une enchère) est automatiquement réservée aux membres Prestige (contrôle serveur à la création et à la modification). En dessous du seuil, le vendeur peut choisir librement de la réserver.
@@ -179,7 +179,8 @@ Règles structurantes :
 
 ### Trophées et réductions
 
-- Attribués **uniquement après finalisation d'une vente** (enchère ou prix fixe), jamais après une simple offre ou un panier.- Règles de récompense et coupons configurables, réductions **plafonnées** (jamais plus que le sous-total).
+- Attribués **uniquement après finalisation d'une vente** (enchère ou prix fixe), jamais après une simple offre ou un panier.
+- Règles de récompense et coupons configurables, réductions **plafonnées** (jamais plus que le sous-total).
 - Aucun crédit d'argent automatique.
 - La page `/trophees` affiche deux grands trophées décoratifs animés en CSS sur les côtés (écrans `xl` et plus). Ils sont `aria-hidden`, sans interaction et désactivés si `prefers-reduced-motion` est actif.
 
@@ -243,7 +244,7 @@ Résultats vérifiés dans cet environnement :
 - `npm test` : 8 fichiers, 60 tests réussis.
 - `npx playwright test` : 26 tests réussis (desktop et mobile) sur le serveur de production.
 
-Les tests unitaires couvrent : monnaie et arrondis, commission (assiette, plafonds, erreurs), prix minimum d'enchère, plafonnement des coupons et réductions, machine à états de livraison, permissions par rôle, cycle de vie Prestige, seuil automatique Prestige à 10 000 € et avantage de 15 % au-delà du seuil.
+Les tests unitaires couvrent : monnaie et arrondis, commission (assiette, plafonds, erreurs), prix minimum d'enchère, plafonnement des coupons et réductions, machine à états de livraison, permissions par rôle, cycle de vie Prestige, seuil automatique Prestige à 10 000 € et avantage de 10 % au-delà du seuil.
 
 ---
 

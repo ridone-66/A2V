@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { env, stripeEnabled } from "@/lib/env";
 import { AppError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
+import { PREMIUM } from "@/lib/config";
 
 /**
  * Intégration Stripe isolée.
@@ -101,7 +102,7 @@ export async function createSubscriptionCheckoutSession(input: {
             quantity: 1,
             price_data: {
               currency: "eur",
-              unit_amount: 600,
+              unit_amount: PREMIUM.priceCents,
               recurring: { interval: "month" },
               product_data: { name: "A2V Prestige Club" },
             },

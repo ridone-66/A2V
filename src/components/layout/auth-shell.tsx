@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BadgeCheck, Gavel, ShieldCheck, Sparkles } from "lucide-react";
+import { PREMIUM, trialOfferLabel } from "@/lib/config";
 
 export function AuthShell({
   title,
@@ -24,15 +25,15 @@ export function AuthShell({
             Achetez, vendez et enchérissez en toute clarté.
           </h2>
           <p className="mt-3 max-w-md text-sm leading-6 text-brand-100">
-            Publiez gratuitement. Une commission de 0,5 % seulement sur une vente finalisée. Pas de frais cachés, pas de
-            reconduction silencieuse.
+            Publiez gratuitement. Une commission de 0,5 % seulement sur une vente finalisée. Pas de frais cachés, conditions
+            d&apos;abonnement affichées avant activation.
           </p>
         </div>
         <ul className="relative space-y-4 text-sm">
           {[
             { icon: ShieldCheck, text: "Paiement protégé jusqu'à la réception" },
             { icon: Gavel, text: "Enchères avec horloge serveur et anti-sniping" },
-            { icon: Sparkles, text: "Prestige : 3 mois offerts, sans engagement" },
+            { icon: Sparkles, text: `Prestige : ${trialOfferLabel(PREMIUM.trialDays)}, engagement de ${PREMIUM.commitmentMonths} mois` },
             { icon: BadgeCheck, text: "Trophées après une vente réellement finalisée" },
           ].map((item) => {
             const Icon = item.icon;

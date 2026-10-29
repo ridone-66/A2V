@@ -790,7 +790,7 @@ model PremiumOffer {
   name        String
   priceCents  Int
   currency    String   @default("EUR")
-  trialMonths Int      @default(3)
+  trialDays    Int      @default(90)
   features    Json     @default("[]")
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -806,6 +806,8 @@ model Subscription {
   status             SubscriptionStatus @default(TRIALING)
   trialStartedAt     DateTime?
   trialEndsAt        DateTime?
+  /** Fin de l'engagement de 12 mois ; aucune résiliation avant cette date. */
+  commitmentEndsAt   DateTime?
   currentPeriodStart DateTime
   currentPeriodEnd   DateTime
   cancelAtPeriodEnd  Boolean            @default(false)

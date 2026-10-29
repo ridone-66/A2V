@@ -51,7 +51,7 @@ export async function getPremiumDiscount(
   return {
     discountCents,
     source: "PREMIUM:HIGH_VALUE_15",
-    label: "Avantage Prestige −15 %",
+    label: "Avantage Prestige −10 %",
   };
 }
 

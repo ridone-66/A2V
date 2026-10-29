@@ -13,6 +13,7 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { EmptyState, Card, CardBody, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { formatMoney } from "@/lib/money";
+import { PREMIUM, trialOfferLabel } from "@/lib/config";
 
 export const metadata: Metadata = {
   title: "Offres Prestige",
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
 const BENEFITS = [
   "Toutes les annonces réservées par les vendeurs",
   "Les annonces de plus de 10 000 €, automatiquement réservées aux membres",
-  "15 % de réduction sur les articles à plus de 10 000 €",
+  "10 % de réduction sur les articles à plus de 10 000 €",
   "Les enchères Prestige en cours et à venir",
 ];
 
@@ -53,7 +54,7 @@ export default async function PremiumOffersPage() {
               </h2>
               <p className="mt-2 text-sm text-muted">
                 {user
-                  ? `${state?.trialMonths ?? 3} mois offerts, puis ${formatMoney(state?.priceCents ?? 600)} par mois, sans engagement.`
+                  ? `${trialOfferLabel(state?.trialDays ?? PREMIUM.trialDays)}, puis ${formatMoney(state?.priceCents ?? PREMIUM.priceCents)} par mois pendant ${PREMIUM.commitmentMonths} mois.`
                   : "Les offres Prestige ne sont visibles qu'après connexion avec un abonnement actif ou un essai en cours."}
               </p>
             </div>
@@ -109,7 +110,7 @@ export default async function PremiumOffersPage() {
           <Sparkles className="h-3.5 w-3.5" /> Membre Prestige
         </Badge>
         <span className="text-xs text-muted">
-          Avantage membre : −15 % sur les articles à plus de 10 000 €, qui sont réservés aux membres. En dessous du seuil, les
+          Avantage membre : −10 % sur les articles à plus de 10 000 €, qui sont réservés aux membres. En dessous du seuil, les
           annonces publiques restent accessibles à tous au prix affiché.
         </span>
       </div>
@@ -205,7 +206,7 @@ export default async function PremiumOffersPage() {
             vendeur.
           </p>
           <p className="mt-2">
-            Les articles de plus de 10 000 € offrent <strong className="text-ink">15 % de réduction aux membres Prestige</strong>,
+            Les articles de plus de 10 000 € offrent <strong className="text-ink">10 % de réduction aux membres Prestige</strong>,
             appliqués automatiquement au paiement. En dessous du seuil, les annonces publiques restent achetables par tous au prix
             affiché.
           </p>

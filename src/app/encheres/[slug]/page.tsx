@@ -7,7 +7,7 @@ import { getAuctionBySlug, minimumNextBidCents, auctionResultLabel } from "@/lib
 import { hasPremium } from "@/lib/services/premium";
 import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/utils";
-import { AUCTION_MAX_EXTENSIONS, AUCTION_PAYMENT_DEADLINE_HOURS, LISTING_CONDITIONS } from "@/lib/config";
+import { AUCTION_MAX_EXTENSIONS, AUCTION_PAYMENT_DEADLINE_HOURS, LISTING_CONDITIONS, PREMIUM, trialOfferLabel } from "@/lib/config";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Alert, Avatar, Card, CardBody } from "@/components/ui/card";
@@ -74,8 +74,8 @@ export default async function AuctionPage({ params }: { params: Promise<Params> 
           </span>
           <h1 className="mt-4 text-2xl font-bold">Enchère réservée aux membres A2V Prestige</h1>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-muted">
-            L&apos;accès à cette enchère est contrôlé côté serveur. Les membres Prestige bénéficient de 3 mois offerts, puis 6 €
-            par mois, sans engagement.
+            L&apos;accès à cette enchère est contrôlé côté serveur. Les membres Prestige disposent de {trialOfferLabel(PREMIUM.trialDays)}, puis {formatMoney(PREMIUM.priceCents)}
+            par mois, avec un engagement de {PREMIUM.commitmentMonths} mois et sans résiliation pendant la période offerte.
           </p>
           <ButtonLink href="/premium" className="mt-6">Découvrir A2V Prestige</ButtonLink>
         </Card>
@@ -189,12 +189,12 @@ export default async function AuctionPage({ params }: { params: Promise<Params> 
 
                 <div className="mt-3 rounded-xl border border-brand-200 bg-brand-50/70 p-3 text-xs leading-5">
                   <p className="flex items-center gap-1.5 font-semibold text-brand-800">
-                    <Sparkles className="h-3.5 w-3.5" /> Avantage Prestige : −15 % au-dessus de 10 000 €
+                    <Sparkles className="h-3.5 w-3.5" /> Avantage Prestige : −10 % au-dessus de 10 000 €
                   </p>
                   <p className="mt-1 text-muted">
                     {premiumViewer
-                      ? "Si votre offre gagnante dépasse 10 000 €, la réduction de 15 % est appliquée automatiquement au paiement."
-                      : "Si l'offre finale dépasse 10 000 €, les abonnés Prestige bénéficient de 15 % de réduction. L'enchère reste ouverte à tous lorsque son prix de départ ne dépasse pas 10 000 €."}
+                      ? "Si votre offre gagnante dépasse 10 000 €, la réduction de 10 % est appliquée automatiquement au paiement."
+                      : "Si l'offre finale dépasse 10 000 €, les abonnés Prestige bénéficient de 10 % de réduction. L'enchère reste ouverte à tous lorsque son prix de départ ne dépasse pas 10 000 €."}
                   </p>
                 </div>
 

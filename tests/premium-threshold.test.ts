@@ -5,7 +5,7 @@ import { qualifiesForPremiumDiscount, requiresPremiumAccess } from "@/lib/config
 /**
  * Seuil A2V Prestige : 10 000 € (1 000 000 centimes), strict.
  * - accès : au-delà, l'annonce est réservée aux membres ;
- * - avantage : 15 % sur les articles au-delà du même seuil.
+ * - avantage : 10 % sur les articles au-delà du même seuil.
  */
 describe("seuil d'accès Prestige 10 000 €", () => {
   it("réserve l'annonce au-delà de 10 000 €", () => {
@@ -30,10 +30,10 @@ describe("seuil d'accès Prestige 10 000 €", () => {
   });
 });
 
-describe("avantage Prestige 15 %", () => {
-  it("applique 15 % à un article juste au-dessus de 10 000 €", () => {
-    expect(premiumDiscountCents(1_000_001)).toBe(150_000);
-    expect(premiumDiscountCents(2_500_000)).toBe(375_000);
+describe("avantage Prestige 10 %", () => {
+  it("applique 10 % à un article juste au-dessus de 10 000 €", () => {
+    expect(premiumDiscountCents(1_000_001)).toBe(100_000);
+    expect(premiumDiscountCents(2_500_000)).toBe(250_000);
   });
 
   it("ne s'applique pas à exactement 10 000 €", () => {
@@ -55,7 +55,7 @@ describe("avantage Prestige 15 %", () => {
   it("ne dépasse jamais le prix de l'article", () => {
     const discount = premiumDiscountCents(1_200_000);
     expect(discount).toBeLessThanOrEqual(1_200_000);
-    expect(discount).toBe(180_000);
+    expect(discount).toBe(120_000);
   });
 
   it("reste strictement inférieur au prix, donc le total acheteur reste positif", () => {

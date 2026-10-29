@@ -13,7 +13,7 @@ export const SETTING_DEFAULTS = {
   /** ITEM_PRICE_BEFORE_DISCOUNT : la réduction trophée est financée par A2V. */
   "commission.base": "ITEM_PRICE_BEFORE_DISCOUNT",
   "premium.priceCents": PREMIUM.priceCents,
-  "premium.trialMonths": PREMIUM.trialMonths,
+  "premium.trialDays": PREMIUM.trialDays,
   "donation.minCents": 100,
   "donation.maxCents": 100_000,
   "donation.suggestedCents": [...SUGGESTED_DONATION_AMOUNTS],

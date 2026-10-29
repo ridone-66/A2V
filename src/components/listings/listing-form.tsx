@@ -313,7 +313,7 @@ export function ListingForm({
         {requiresPremium ? (
           <p className="rounded-xl border border-brand-200 bg-brand-50 p-3 text-xs leading-5 text-muted">
             <strong className="text-ink">Annonce à plus de 10 000 € :</strong> elle est réservée aux membres Prestige, qui
-            bénéficient de 15 % de réduction sur le prix de l&apos;article. Les non-membres ne peuvent ni la voir ni l&apos;acheter.
+            bénéficient de 10 % de réduction sur le prix de l&apos;article. Les non-membres ne peuvent ni la voir ni l&apos;acheter.
           </p>
         ) : null}
 

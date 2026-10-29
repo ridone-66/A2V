@@ -5,6 +5,8 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { isAppError } from "@/lib/errors";
 import { formBool } from "@/lib/forms";
 import { errorState, successState, type ActionState } from "@/lib/action-state";
+import { getSetting } from "@/lib/services/settings";
+import { PREMIUM, trialDurationLabel } from "@/lib/config";
 import {
   activateSubscription,
   cancelSubscription,
@@ -21,10 +23,11 @@ export async function startTrialAction(_prev: ActionState, _formData: FormData):
   if (!user) return errorState("Connectez-vous pour démarrer votre essai.");
   try {
     await startTrial(user.id);
+    const trialDays = await getSetting("premium.trialDays");
     revalidatePath("/premium");
     revalidatePath("/compte/abonnement");
     return successState(
-      "Votre essai de 3 mois est activé. Aucun prélèvement n'a lieu pendant l'essai ; vous pouvez résilier à tout moment.",
+      `Votre période offerte de ${trialDurationLabel(trialDays)} est activée. Aucune résiliation n'est possible pendant cette période ni pendant l'engagement de ${PREMIUM.commitmentMonths} mois qui suit.`,
     );
   } catch (error) {
     return errorState(message(error));

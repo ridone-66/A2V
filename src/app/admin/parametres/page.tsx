@@ -21,7 +21,7 @@ function label(key: string): string {
     "commission.rateBps": "Taux de commission (points de base)",
     "commission.base": "Base de calcul de la commission",
     "premium.priceCents": "Prix Prestige (centimes)",
-    "premium.trialMonths": "Mois d'essai Prestige",
+    "premium.trialDays": "Jours d'essai Prestige",
     "donation.minCents": "Don minimum (centimes)",
     "donation.maxCents": "Don maximum (centimes)",
     "donation.suggestedCents": "Montants suggérés (centimes, séparés par des virgules)",

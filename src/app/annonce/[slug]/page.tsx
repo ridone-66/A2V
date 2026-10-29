@@ -18,6 +18,7 @@ import { getListingBySlug, incrementListingView, isFavorite } from "@/lib/servic
 import { hasPremium } from "@/lib/services/premium";
 import { premiumDiscountCents } from "@/lib/services/coupons";
 import { formatMoney } from "@/lib/money";
+import { PREMIUM, trialOfferLabel } from "@/lib/config";
 import { formatDate } from "@/lib/utils";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
@@ -76,7 +77,9 @@ export default async function ListingPage({ params }: { params: Promise<Params> 
           <h1 className="mt-4 text-2xl font-bold">Annonce réservée aux membres A2V Prestige</h1>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-muted">
             Ce vendeur a choisi de réserver son annonce aux membres. L&apos;accès est vérifié côté serveur, pas seulement masqué
-            dans l&apos;interface. L&apos;abonnement est sans engagement : 3 mois offerts, puis 6 € par mois.
+            dans l&apos;interface. L&apos;abonnement inclut {trialOfferLabel(PREMIUM.trialDays)}, puis {formatMoney(PREMIUM.priceCents)} par
+            mois avec un engagement de {PREMIUM.commitmentMonths} mois. Aucune résiliation pendant la période offerte ni pendant
+            l&apos;engagement.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <ButtonLink href="/premium">{user ? "Découvrir Prestige" : "Se connecter et découvrir"}</ButtonLink>
@@ -225,12 +228,12 @@ export default async function ListingPage({ params }: { params: Promise<Params> 
                   <div className="mt-3 rounded-xl border border-brand-200 bg-brand-50/70 p-3 text-xs leading-5">
                     <p className="flex items-center gap-1.5 font-semibold text-brand-800">
                       <Sparkles className="h-3.5 w-3.5" />
-                      {premiumViewer ? "Votre avantage Prestige : −15 %" : "Avantage Prestige : −15 %"}
+                      {premiumViewer ? "Votre avantage Prestige : −10 %" : "Avantage Prestige : −10 %"}
                     </p>
                     <p className="mt-1 text-muted">
                       {premiumViewer
                         ? "La réduction est appliquée automatiquement au paiement, sur le prix de l'article."
-                        : "Les abonnés Prestige bénéficient de 15 % de réduction sur cet article. Sans abonnement, il reste disponible au prix affiché."}
+                        : "Les abonnés Prestige bénéficient de 10 % de réduction sur cet article. Sans abonnement, il reste disponible au prix affiché."}
                     </p>
                   </div>
                 ) : null}

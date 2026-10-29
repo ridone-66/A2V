@@ -7,6 +7,7 @@ import { getPremiumState } from "@/lib/services/premium";
 import { paymentsSimulationEnabled } from "@/lib/env";
 import { formatMoney } from "@/lib/money";
 import { formatDate, formatDateTime } from "@/lib/utils";
+import { PREMIUM, trialDurationLabel, trialOfferLabel } from "@/lib/config";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Alert, Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -44,7 +45,7 @@ export default async function SubscriptionPage() {
       <PageHeader
         eyebrow="Avantages"
         title="Abonnement A2V Prestige"
-        description={`${state.trialMonths} mois offerts, puis ${formatMoney(state.priceCents)} par mois, sans engagement. Résiliable à tout moment.`}
+        description={`${trialOfferLabel(state.trialDays || PREMIUM.trialDays)}, puis ${formatMoney(state.priceCents)} par mois pendant ${PREMIUM.commitmentMonths} mois. Résiliation possible à la fin de l'engagement uniquement.`}
         action={<ButtonLink href="/premium" variant="outline" size="sm">Présentation Prestige</ButtonLink>}
       />
 
@@ -64,7 +65,7 @@ export default async function SubscriptionPage() {
               {state.isPremium ? "Avantages actifs" : "Avantages inactifs"}
             </Badge>
           </div>
-          <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
+          <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-4">
             <div>
               <dt className="text-xs text-brand-200">Prix mensuel</dt>
               <dd className="font-semibold">{formatMoney(state.priceCents)} / mois</dd>
@@ -72,6 +73,10 @@ export default async function SubscriptionPage() {
             <div>
               <dt className="text-xs text-brand-200">Échéance</dt>
               <dd className="font-semibold">{state.nextBillingAt ? formatDate(state.nextBillingAt) : "—"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-brand-200">Fin d&apos;engagement</dt>
+              <dd className="font-semibold">{state.commitmentEndsAt ? formatDate(state.commitmentEndsAt) : "—"}</dd>
             </div>
             <div>
               <dt className="text-xs text-brand-200">Jours restants</dt>
@@ -95,31 +100,40 @@ export default async function SubscriptionPage() {
             {state.status === "NONE" || state.status === "EXPIRED" || state.status === "PAYMENT_FAILED" ? (
               <>
                 {state.canStartTrial ? (
-                  <ActionForm action={startTrialAction} submitLabel={`Démarrer mes ${state.trialMonths} mois offerts`} pendingLabel="Activation…">
+                  <ActionForm action={startTrialAction} submitLabel={`Démarrer les ${trialDurationLabel(state.trialDays)} offerts`} pendingLabel="Activation…">
                     <p className="text-sm text-muted">
-                      Aucun prélèvement pendant l&apos;essai. À la fin, l&apos;essai expire sans reconduction silencieuse : vous
-                      choisissez explicitement de continuer.
+                      Aucun prélèvement pendant la période offerte. Elle est suivie d&apos;un engagement de{" "}
+                      {PREMIUM.commitmentMonths} mois à {formatMoney(state.priceCents)} par mois. Aucune résiliation n&apos;est
+                      possible avant la fin de l&apos;engagement.
                     </p>
                   </ActionForm>
                 ) : (
-                  <p className="text-sm text-muted">Vous avez déjà utilisé votre période d&apos;essai.</p>
+                  <p className="text-sm text-muted">Vous avez déjà utilisé votre période offerte.</p>
                 )}
                 <ActionForm action={activateSubscriptionAction} submitLabel={`Activer pour ${formatMoney(state.priceCents)} / mois`} pendingLabel="Activation…">
                   <p className="text-sm text-muted">
                     {state.hasUsedTrial
-                      ? "Activez l'abonnement payant. Sans engagement, résiliable à tout moment."
-                      : "Vous pouvez aussi souscrire directement, sans passer par l'essai."}
+                      ? `Activez l'abonnement payant avec un engagement de ${PREMIUM.commitmentMonths} mois.`
+                      : `Vous pouvez aussi souscrire directement, avec un engagement de ${PREMIUM.commitmentMonths} mois.`}
                   </p>
                 </ActionForm>
               </>
             ) : null}
 
-            {state.isPremium && state.status !== "CANCEL_AT_PERIOD_END" ? (
+            {state.isPremium && state.status !== "CANCEL_AT_PERIOD_END" && state.canCancel ? (
               <ActionForm action={cancelSubscriptionAction} submitLabel="Résilier à la fin de la période" pendingLabel="Résiliation…">
                 <p className="text-sm text-muted">
-                  La résiliation prend effet à la fin de la période en cours. Vous conservez vos avantages jusque-là, sans frais.
+                  Votre engagement est terminé. La résiliation prend effet à la fin de la période en cours, sans frais.
                 </p>
               </ActionForm>
+            ) : null}
+
+            {state.isPremium && state.status !== "CANCEL_AT_PERIOD_END" && !state.canCancel ? (
+              <p className="text-sm text-muted">
+                Votre engagement de {PREMIUM.commitmentMonths} mois est en cours jusqu&apos;au{" "}
+                {state.commitmentEndsAt ? formatDate(state.commitmentEndsAt) : "—"}. La résiliation sera possible à cette date ;
+                elle est bloquée pendant la période offerte et pendant l&apos;engagement.
+              </p>
             ) : null}
 
             {state.status === "CANCEL_AT_PERIOD_END" ? (
@@ -127,16 +141,6 @@ export default async function SubscriptionPage() {
                 <p className="text-sm text-muted">
                   Votre abonnement est programmé pour s&apos;arrêter le {state.currentPeriodEnd ? formatDate(state.currentPeriodEnd) : "—"}.
                   Vous pouvez revenir en arrière à tout moment.
-                </p>
-              </ActionForm>
-            ) : null}
-
-            {state.status === "CANCEL_AT_PERIOD_END" ? (
-              <ActionForm action={cancelSubscriptionAction} submitLabel="Arrêter immédiatement" pendingLabel="Arrêt…" className="pt-2">
-                <input type="hidden" name="immediate" value="1" />
-                <p className="text-xs text-muted">
-                  Arrêt immédiat : les avantages Prestige sont désactivés tout de suite. Aucun remboursement au prorata
-                  n&apos;est promis dans cette démonstration.
                 </p>
               </ActionForm>
             ) : null}
@@ -151,7 +155,7 @@ export default async function SubscriptionPage() {
                 "Accès aux offres réservées aux membres",
                 "Réductions plafonnées sur des achats éligibles",
                 "Aucune réduction de la commission : 0,5 % pour tous",
-                "Sans engagement, résiliable en ligne",
+                `Engagement de ${PREMIUM.commitmentMonths} mois, résiliation à l'échéance`,
               ].map((item) => (
                 <p key={item} className="flex items-start gap-2">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
@@ -170,7 +174,7 @@ export default async function SubscriptionPage() {
               </p>
               <p className="flex items-start gap-2">
                 <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
-                Aucune reconduction silencieuse dans cette version : l&apos;essai expire, l&apos;abonnement payant est explicite.
+                Le prix, la période offerte et la fin d&apos;engagement sont affichés avant toute activation.
               </p>
               <p>
                 Voir les <Link href="/cgu" className="link">CGU &amp; CGV</Link> pour les conditions complètes.

@@ -143,7 +143,7 @@ Sinon, utilisez un scheduler externe (GitHub Actions, cron) qui appelle la même
 | `DEFAULT_LOCALE` | Locale par défaut (défaut `fr-FR`). |
 | `COMMISSION_RATE_BPS` | Taux de commission en points de base (défaut `50` = 0,5 %). |
 | `PREMIUM_PRICE_CENTS` | Prix mensuel Prestige en centimes (défaut `600`). |
-| `PREMIUM_TRIAL_MONTHS` | Durée de l'essai Prestige (défaut `3`). |
+| `PREMIUM_TRIAL_DAYS` | Durée de l'essai Prestige en jours (défaut `7`, soit une semaine). |
 
 ### E-mail (optionnel)
 

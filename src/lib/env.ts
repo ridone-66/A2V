@@ -58,8 +58,8 @@ const envSchema = z.object({
   S3_SECRET_ACCESS_KEY: z.string().optional(),
   S3_PUBLIC_BASE_URL: z.string().optional(),
   COMMISSION_RATE_BPS: z.coerce.number().int().min(0).max(10000).default(50),
-  PREMIUM_PRICE_CENTS: z.coerce.number().int().positive().default(600),
-  PREMIUM_TRIAL_MONTHS: z.coerce.number().int().min(0).max(12).default(3),
+  PREMIUM_PRICE_CENTS: z.coerce.number().int().positive().default(1500),
+  PREMIUM_TRIAL_DAYS: z.coerce.number().int().min(0).max(365).default(90),
 });
 
 export type Env = z.infer<typeof envSchema>;

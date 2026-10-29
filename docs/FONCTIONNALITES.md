@@ -117,14 +117,14 @@ Les tests e2e couvrent : accueil, catalogue, fiche annonce, photos d'illustratio
 
 | Fonction | État | Précisions |
 | --- | --- | --- |
-| Essai 3 mois | **Fonctionnel** | Aucun prélèvement, expiration sans reconduction |
+| Essai 1 semaine | **Fonctionnel** | Aucun prélèvement, expiration sans reconduction |
 | Activation payante | **Simulée** | Paiement fictif marqué `SIMULATED` |
-| Résiliation / reprise | **Fonctionnel** | Fin de période ou immédiate |
-| Expiration automatique | **Fonctionnel** | Via cron |
+| Résiliation / reprise | **Fonctionnel** | Bloquée pendant l'essai et l'engagement ; possible à la fin de l'engagement |
+| Expiration / conversion automatique | **Fonctionnel** | L'essai est converti en abonnement payant à son échéance (simulation) ; abonnements échus expirés via cron |
+| Tarif et engagement | **Fonctionnel** | 15 €/mois, 3 mois offerts, engagement de 12 mois |
 | Avantages réservés | **Fonctionnel** | Vérifiés côté serveur |
 | Seuil automatique 10 000 € | **Fonctionnel** | Au-delà de 10 000 € (prix fixe ou départ d'enchère), l'annonce devient Prestige même si le vendeur décoche ; contrôle serveur |
-| Avantage Prestige 15 % | **Fonctionnel** | Réduction de 15 % au-dessus de 10 000 €, serveur, non cumulable |
-| Page Offres Prestige | **Fonctionnel** | `/premium/offres`, `noindex`, données chargées après vérification serveur |
+| Avantage Prestige 10 % | **Fonctionnel** | Réduction de 10 % au-dessus de 10 000 €, serveur, non cumulable || Page Offres Prestige | **Fonctionnel** | `/premium/offres`, `noindex`, données chargées après vérification serveur |
 | Accès non-membre | **Fonctionnel** | Page d'explication sans aucune donnée d'annonce ; vérification aussi à l'achat et à l'enchère |
 | Checkout Stripe Billing | **Non branché** | `createSubscriptionCheckoutSession` existe mais aucune action ne l'appelle |
 | Renouvellement réel | **Non implémenté** | Période approximée à 30 jours dans le webhook |
